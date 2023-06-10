@@ -10,8 +10,6 @@ const client = new Client({
 });
 
 const cooldowns = new Map();
-const suggestionMap = new Map();
-const usedEmojiCommands = new Set();
 
 client.on('ready', async () => {
   try {
