@@ -68,58 +68,47 @@ const commands = [
       const Payment = new TextInputBuilder()
         .setCustomId("Payment")
         .setRequired(true)
-        .setLabel("Provide the payment (Robux, USD, Other)")
-        .setStyle(TextInputStyle.Short);
-
-      const ImageUrl = new TextInputBuilder()
-        .setCustomId("ImageUrl")
-        .setRequired(true)
-        .setLabel("Image URL (Portfolio, game, etc...)")
-        .setStyle(TextInputStyle.Short);
-
-      const firstActionRow = new ActionRowBuilder().addComponents(Title)
-      const secondActionRow = new ActionRowBuilder().addComponents(Description)
-      const thirdActionRow = new ActionRowBuilder().addComponents(Payment)
-      const fourthActionRow = new ActionRowBuilder().addComponents(ImageUrl)
-
-      modal2.addComponents(firstActionRow, secondActionRow, thirdActionRow, fourthActionRow)
-      interaction.showModal(modal2)
-
-      client.once(Events.InteractionCreate, async (interaction2) => {
-        if (!interaction2.isModalSubmit()) return;
-
-        if (interaction2.customId === 'modal2') {
-          try {
-            const Title = interaction2.fields.getTextInputValue('Title');
-            const Description = interaction2.fields.getTextInputValue('Description');
-            const Payment = interaction2.fields.getTextInputValue('Payment');
-            const ImageUrl = interaction2.fields.getTextInputValue('ImageUrl');
-
-            const memberInteractor = interaction2.user.id;
-
-            const channel = await client.channels.fetch(channelId); // get the channel by ID
-
-            const embed = new EmbedBuilder()
-              .setTitle(`**Title** ${Title}`)
-              .setDescription(`\n**Description:** ${Description}\n\n**Payment:** ${Payment}\n\n**Contact:** <@${memberInteractor}>`)
-              .setImage(ImageUrl)
-              .setColor('Purple')
-              .setTimestamp();
-
-            await channel.send({
-              content: `<@${memberInteractor}>`,
-              embeds: [embed]
+            await approvingChannel.send({
+              content: `<@${memberInteractor}>'s post\n\nBefore approving this, make sure this post has the proper grammar, details, payment, and more... If the post passes all of these then you may approve it`,
+              embeds: [embed],
+              components: [{ type: 1, components: [approveButton, declineButton] }]
             });
-
+  
+            client.on('interactionCreate', async (interaction3) => {
+              if (!interaction3.isButton()) return;
+  
+              try {
+                if (interaction3.customId === 'approve_button') {
+                  await channel.send({ content: `<@${memberInteractor}>`, embeds: [embed] });
+            
+                  interaction2.user.send({ content: `:tada: Your post was successfully approved, Congratulations! :tada:`, embeds: [embed] });
+                  interaction3.reply({ content: '<a:checkmark:1106657807740186684> Post was successfully approved' });
+                } else if (interaction3.customId === 'decline_button') {
+                  interaction3.reply(`Please enter the valid reason why you are declining this post`).then(() => {
+                    const filter = m => m.author.id === interaction3.user.id;
+                    const collector = interaction3.channel.createMessageCollector({ filter, max: 1 });
+            
+                    collector.on('collect', collected => {
+                      const reason = collected.content.toLowerCase();
+                      interaction2.user.send({ content: `<a:Xmark:1106658889656709202> <@${memberInteractor}> Unfortunately your post in Bloxian Devs has been declined for the following reason: \`${reason}\``, embeds: [embed] });
+                    });
+                  });
+                }
+              } catch (error) {
+                console.log(error);
+                await interaction3.reply({ content: "<a:Xmark:1106658889656709202> An error occurred while processing your request. If this problem persists, please report it to us in <#1061732005533978684>", ephemeral: true });
+              }
+            });
+  
             cooldowns.set(interaction2.user.id, Date.now() + 12 * 60 * 60 * 1000); // 12 hours cooldown
-            await interaction2.reply({ content: "<a:checkmark:1106657807740186684> Post was successfully submitted. Thank you for using our market, you should've been mentioned as it posted.", ephemeral: false });
+            await interaction2.reply({ content: "<a:checkmark:1106657807740186684> Post was successfully submitted. Please wait patiently while our staff approves it.", ephemeral: false });
           } catch (error) {
             console.log(error);
-            await interaction2.reply({ content: "<a:Xmark:1106658889656709202> An error occurred while submitting your post. If this problem persists then please report it to us in <#1061732005533978684>", ephemeral: true });
+            await interaction2.reply({ content: "<a:Xmark:1106658889656709202> An error occurred while submitting your post. If this problem persists, please report it to us in <#1061732005533978684>", ephemeral: true });
           }
         }
       });
-    } 
+    }
 });
 
 // All rights reserved. Please do not steal the code from the open source repository on Github.
