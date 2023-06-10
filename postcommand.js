@@ -1,4 +1,4 @@
-// All rights reserved. Please do not steal the code from the open source repository on Github.
+// All rights reserved. Please do not steal the code from the open source.
 
 require("dotenv/config")
 const { SlashCommandBuilder, EmbedBuilder, Client, GatewayIntentBits, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, Events } = require("discord.js");
@@ -111,4 +111,4 @@ const commands = [
     }
 });
 
-// All rights reserved. Please do not steal the code from the open source repository on Github.
+// All rights reserved. Please do not steal the code from the open source.
