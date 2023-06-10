@@ -3,3 +3,6 @@ Welcome to the Bloxian Devs Discord bot repository! This is an open-source proje
 The purpose of this bot is to help users market their Roblox development services or find freelancers to hire. You can use the /post command to create a post looking for developers or commissions.
 
 To get started contributing to this project, please fork this repository and submit pull requests with your changes. We appreciate any feedback or suggestions you may have as well.
+
+
+All rights reserved. Do not steal the code from the open source repository.
