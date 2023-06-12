@@ -88,56 +88,76 @@ client.on('interactionCreate', async (interaction3) => {
 
                   const expirationDate = new Date();
                   expirationDate.setDate(expirationDate.getDate() + 14); // Set the expiration date to 14 days from now
+client.on('interactionCreate', async (interaction3) => {
+  if (!interaction3.isButton()) return;
 
-                  try {
-                    const expiredPost = new ExpiredPost({
-                      postId: postedMessage.id, // Use the posted message ID as the post ID or a unique identifier
-                      expirationDate,
-                    });
+  try {
+    if (interaction3.customId === 'approve_button') {
+      embed.setFooter({ text: `Approved by: ${interaction3.user.username}` });
 
-                    await expiredPost.save();
+      const channel = await client.channels.fetch(channelId);
+      const postedMessage = await channel.send({ content: `<@${memberInteractor}>`, embeds: [embed] });
 
-                    interaction2.user.send({ content: `:tada: Your post was successfully approved, Congratulations! :tada:`, embeds: [embed] });
-                    interaction3.reply({ content: '<a:checkmark:1106657807740186684> Post was successfully approved' });
-                  } catch (error) {
-                    console.log(error);
-                    await interaction3.reply({ content: "<a:Xmark:1106658889656709202> An error occurred while processing your request. If this problem persists, please report it to us in <#1061732005533978684>", ephemeral: true });
-                  }
+      // Store the post information in a database or file for future reference
 
-                  // Schedule the deletion of the post after 14 days
-                  const expirationTimeout = setTimeout(async () => {
-                    // Retrieve the post information from the database using the postId
-                    const expiredPost = await ExpiredPost.findOne({ postId: postedMessage.id });
+      const expirationDate = new Date();
+      expirationDate.setDate(expirationDate.getDate() + 14); // Set the expiration date to 14 days from now
 
-                    if (expiredPost) {
-                      // Delete the post from the marketChannel
-                      await postedMessage.delete();
+      try {
+        const expiredPost = new ExpiredPost({
+          postId: postedMessage.id, // Use the posted message ID as the post ID or a unique identifier
+          expirationDate,
+        });
+        await expiredPost.save();
 
-                      // Remove the expired post document from the database
-                      await expiredPost.remove();
+        interaction2.user.send({ content: `:tada: Your post was successfully approved, Congratulations! :tada:`, embeds: [embed] });
+        interaction3.reply({ content: '<a:checkmark:1106657807740186684> Post was successfully approved' });
+      } catch (error) {
+        console.log(error);
+        await interaction3.reply({ content: "<a:Xmark:1106658889656709202> An error occurred while processing your request. If this problem persists, please report it to us in <#1061732005533978684>", ephemeral: true });
+      }
 
-                      await interaction2.user.send({
-                        content: `Your post with the id being: \`${expiredPost.postId}\` has been deleted from our market, as its been in there for 14 days (2 weeks).`,
-                        embeds: [embed],
-                      });
-                    }
-                  }, expirationDate - Date.now());
-                } else if (interaction3.customId === 'decline_button') {
-                  interaction3.reply(`Please enter the valid reason why you are declining this post`).then(() => {
-                    const filter = m => m.author.id === interaction3.user.id;
-                    const collector = interaction3.channel.createMessageCollector({ filter, max: 1 });
+      // Schedule the deletion of the post after 14 days
+      const expirationTimeout = setTimeout(async () => {
+        // Retrieve the post information from the database using the postId
+        const expiredPost = await ExpiredPost.findOne({ postId: postedMessage.id });
 
-                    collector.on('collect', collected => {
-                      const reason = collected.content;
-                      interaction2.user.send({ content: `<a:Xmark:1106658889656709202> <@${memberInteractor}> Unfortunately your post in Bloxian Devs has been declined for the following reason: \`${reason}\``, embeds: [embed] });
-                    });
-                  });
-                }
-              } catch (error) {
-                console.log(error);
-                await interaction3.reply({ content: "<a:Xmark:1106658889656709202> An error occurred while processing your request. If this problem persists, please report it to us in <#1061732005533978684>", ephemeral: true });
-              }
-            });
+        if (expiredPost) {
+          // Delete the post from the marketChannel
+          await postedMessage.delete();
+
+          // Remove the expired post document from the database
+          await expiredPost.remove();
+
+          await interaction2.user.send({
+            content: `Your post with the id being: \`${expiredPost.postId}\` has been deleted from our market, as its been in there for 14 days (2 weeks).`,
+            embeds: [embed],
+          });
+        }
+      }, expirationDate - Date.now());
+
+      // Store the expiration timeout in the database or file
+      const expirationTimeoutData = {
+        postId: postedMessage.id,
+        expirationTimeoutId: expirationTimeout,
+      };
+      await ExpiredPost.findOneAndUpdate({ postId: postedMessage.id }, { expirationTimeoutData }, { upsert: true });
+    } else if (interaction3.customId === 'decline_button') {
+      interaction3.reply(`Please enter the valid reason why you are declining this post`).then(() => {
+        const filter = m => m.author.id === interaction3.user.id;
+        const collector = interaction3.channel.createMessageCollector({ filter, max: 1 });
+
+        collector.on('collect', collected => {
+          const reason = collected.content;
+          interaction2.user.send({ content: `<a:Xmark:1106658889656709202> <@${memberInteractor}> Unfortunately your post in Bloxian Devs has been declined for the following reason: \`${reason}\``, embeds: [embed] });
+        });
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    await interaction3.reply({ content: "<a:Xmark:1106658889656709202> An error occurred while processing your request. If this problem persists, please report it to us in <#1061732005533978684>", ephemeral: true });
+  }
+});
 
             cooldowns.set(interaction2.user.id, Date.now() + 12 * 60 * 60 * 1000); // 12 hours cooldown
             await interaction2.reply({ content: "<a:checkmark:1106657807740186684> Post was successfully submitted. Please wait patiently while our staff approves it.", ephemeral: false });
