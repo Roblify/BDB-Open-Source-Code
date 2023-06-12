@@ -155,9 +155,8 @@ client.on('interactionCreate', async (interaction3) => {
     }
   } catch (error) {
     console.log(error);
-    await interaction3.reply({ content: "<a:Xmark:1106658889656709202> An error occurred while processing your request. If this problem persists, please report it to us in <#1061732005533978684>", ephemeral: true });
-  }
-});
+    await interaction3.reply({ content: "<a:Xmark:1106658889656709202> An error occurred while processing your request. If this problem persists, please report it to us in <#1061732005533978684>", ephemeral: 
+   }
 
             cooldowns.set(interaction2.user.id, Date.now() + 12 * 60 * 60 * 1000); // 12 hours cooldown
             await interaction2.reply({ content: "<a:checkmark:1106657807740186684> Post was successfully submitted. Please wait patiently while our staff approves it.", ephemeral: false });
